@@ -11,14 +11,20 @@ class Poveznica:
         self.naziv = poveznica.get_text()
         self.url = urlparse.urlparse(poveznica.get('href'))
         self.atributi = poveznica.attrs
+        
+    # metoda provjerava je li druga poveznica, koja se proslijedjuje kao argument metode, identicna
+    def identicnaPoveznica(self, drugaPoveznica):
+        
+        if (self.url.netloc == drugaPoveznica.netloc) and (self.url.path == drugaPoveznica.path) and (self.url.params == drugaPoveznica.params) and (self.url.query == drugaPoveznica.query):
+            
+            return True
+            
+        return False 
 
 
 class Stranica: 
     
     def __init__(self, poveznica, izvor = False):
-        
-        # namjestimo
-        self.poveznice = []
         
         # pohranimo url
         self.url = poveznica
@@ -47,23 +53,8 @@ class Stranica:
             
             print "Pogreska"
         
-
-
-    
-    # metoda koja vraca popis poveznica na stranici
-    def dohvatiPoveznice(self):
-        
-        # pronadjemo poveznice 
-        poveznice = self.juha('a')
-        
-        # prodjemo kroz svaku poveznicu
-        for a in poveznice: 
-            
-            # instanciramo novu poveznicu i pohranimo ju
-            self.poveznice.append(Poveznica(a))
-
     # 
-    def rijeci(self):
+   # def rijeci(self):
         
         """rijeci = self.juha.body.find_all(text=True, recursive=True)
         
@@ -75,7 +66,7 @@ class Stranica:
         
         print self.juha.body.get_text()"""
         
-
+        
     # metoda rastavlja stranicu na pojedinacne rijeci
     def rijeci(self):
         
@@ -111,7 +102,7 @@ class Stranica:
 
 class Cvor:
     
-    dozvoljeniElementi = ['p', 'a', 'strong', 'b', 'em', 'i', 'li',  'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8', 'dt', 'dd', 'td', 'th', 'small', 'strike', 'cite', 'blockquote', 'addr', 'sub', 'sup', 'choco']
+    dozvoljeniElementi = ['body', 'p', 'a', 'strong', 'b', 'em', 'i', 'li',  'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8', 'dt', 'dd', 'td', 'th', 'small', 'strike', 'cite', 'blockquote', 'addr', 'sub', 'sup', 'choco']
     linijskiElementi = ['b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'dfn', 'em', 'kbd', 'strong', 'samp', 'var', 'a', 'bdo', 'q', 'span', 'sub', 'sup', 'label']
     semantickiElementi = ['b', 'strong', 'em', 'i']
     blokElementi = []
@@ -122,13 +113,49 @@ class Cvor:
         self.maks_dubina = 0
         self.sadrzaj = cvor
 
+        # juha 
+        self.juha = self.skuhajJuhu()
+
+    
+    
+    # skuhajmo juhu
+    def skuhajJuhu(self):
+        
+        # iz sadrzaja
+        return BeautifulSoup(self.sadrzaj)
+    
+    
+    
+    # Vraca sve poveznice koje se nalaze u cvoru
+    def poveznice(self):
+        
+        # dohvatimo poveznice
+        sirove_poveznice = self.sadrzaj('a')
+        poveznice = [Poveznica(poveznica) for poveznica in sirove_poveznice] 
+        
+        # vratimo uredjeni par gdje je prva vrijednost lista poveznica, a druga broj poveznica
+        return (poveznice, len(poveznice))
+      
+    #
+    # metoda potrebna za indeksiranje, provjerava ima li trenutni cvor semanticku djecu
+    #
+    def imaSemantickuDjecu(self):
+        
+        if len(self.juha.find_all(self.semantickiElementi, recursive=False)) > 0:
+            
+            return True
+        
+        return False
+        
     
     def djeca(self):
         
         #return [dijete for dijete in cvor.children]
-        return [Cvor(dijete, self.dubina+1) for dijete in self.sadrzaj.find_all(self.dozvoljeniElementi, recursive=False)]
+        return [Cvor(dijete, self.dubina+1) for dijete in self.juha.find_all(self.dozvoljeniElementi, recursive=False)]
 
-       
+
+
+# prima instancu stranice     
 
 class Indekser: 
     
@@ -136,41 +163,28 @@ class Indekser:
         
         # pohranimo izvorni kod stranice
         self.stranica = stranica
-        
-        # juha 
-        self.juha = self.skuhajJuhu()
+    
+
     
     
-    
-    # skuhajmo juhu
-    def skuhajJuhu(self):
-        
-        # iz izvora
-        return BeautifulSoup(self.stranica.izvor)
-    
-    
-    def tijelo(self):
-        
-        return Cvor(self.juha.body);
-    
-    
-    
-    def imaSemantickuDjecu(self, cvor):
-        
-        if len(cvor.find_all(self.semantickiElementi, recursive=False)) > 0:
-            
-            return True
-        
-        return False
 
 
 
-web = Stranica("demo.html", open("demo.html").read())
+#izvorna_adresa = 'http://www.ffzg.unizg.hr/'
+#izvorna_poveznica = urlparse.urlparse(izvorna_adresa)
 
-indeks = Indekser(web)
-tijelo = indeks.tijelo()
+strFilozofskog = Stranica('http://www.ffzg.unizg.hr/')
+obicanCvor = Cvor(strFilozofskog.izvor)
+bodyCvor = Cvor(obicanCvor.juha.body)
+print bodyCvor.juha.find_all(bodyCvor.dozvoljeniElementi, recursive=False)
 
-print tijelo.djeca()[0].djeca()[0].sadrzaj
+
+
+#indeks = Indekser(strFilozofskog)
+
+#print indeks.juha.
+
+
 
 
 
