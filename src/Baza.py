@@ -6,7 +6,7 @@ import sqlite3
 class Baza:
 
 	# konstruktor
-    def __init__(self, imeBaze='baza.db'):
+    def __init__(self, imeBaze='db/poveznice.db'):
 	
         # spajanje
         self.__con = sqlite3.connect(imeBaze)
@@ -52,7 +52,8 @@ if __name__ == '__main__':
     db = Baza()
     #db.stvoriTablice()
     
-    #db.dodajPoveznicu('http://net.hr', 'http://telegram.hr')
+    
+    
     
     rez = db.izvrsi('SELECT * FROM Poveznica')
     rez = rez.fetchall()

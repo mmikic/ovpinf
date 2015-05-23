@@ -22,8 +22,12 @@ class Pretrazivac:
         self.inicijalnaPoveznica = pocetna.poveznica
         
         # namjestimo veliki rjecnik poveznica
-        self.dbPoveznice = []
+        self.dbPoveznice = {}
         self.baza = Baza()
+        
+        # poveznice
+        self.indeksirano = set()
+        self.trebaIndeksirati = set()
         
         # pokrenemo inicijalno indeksiranje
         self.indeksiraj(pocetna)
@@ -31,6 +35,14 @@ class Pretrazivac:
     
     # metoda odlucuje hocemo li posjetiti proslijedjenu adresu
     def dozvoljenaAdresa(self, adresa, lokalno=True):
+        
+        # ako je vec na popisu indeksiranih
+        if adresa.url in self.indeksirano:
+            
+            # nista od toga
+            print "adresa je vec indeksirana"
+            return False
+        
         
         # ako je identicna poveznica, ne zelimo
         if adresa.identicnaPoveznica(self.inicijalnaPoveznica):
@@ -70,6 +82,15 @@ class Pretrazivac:
         print "Dubina: " + str(dubina)
         print "Stranica: " + str(indekser.stranica.url)
         print "==========================="
+
+        # dodamo na popis indeksiranih
+        self.indeksirano.add(indekser.stranica.url)
+            
+        #
+        # indeksiranje samog sadrzaja
+        # // naknadno //
+        # 
+        
         
         # provjerimo smijemo li uci nivo nize
         if dubina <= maksimalno:
@@ -77,32 +98,25 @@ class Pretrazivac:
             # dohvatimo sve poveznice
             poveznice = indekser.poveznice()
             
-            # privremeno pohranimo odnose
-            """odnosi = {
-                'izvor': unicode(indekser.stranica.url),
-                'poveznice': []
-            }
-            
-            # iteriramo kroz svaku poveznice
-            for poveznica in poveznice:
-                
-                # pohranimo poveznicu
-                odnosi['poveznice'].append(poveznica)
-            
-            # dodamo u globalnu listu
-            self.dbPoveznice.append(odnosi)"""
+            self.dbPoveznice[indekser.stranica.url] = [x.url for x in poveznice]
             
             # za svaku od tih poveznica, napravimo isto
             for novaStranica in poveznice:
                 
                 # provjerimo zelimo li to posjetiti
                 if self.dozvoljenaAdresa(novaStranica):
+                    
+                    
+                    print " - " + indekser.stranica.url
+                    print " -- " + novaStranica.url
+                    
+                    # pohranimo poveznicu u bazu
+                    self.baza.dodajPoveznicu(indekser.stranica.url, novaStranica.url)
                 
                     # pokusajmo ucitati novu stranicu
                     try:
                     
                         # posjetimo i ponovimo proceduru
-                        print novaStranica.url
                         stranica = Stranica(novaStranica.url)
                     
                     except:
@@ -137,11 +151,10 @@ class Pretrazivac:
                         
                         print "Indeksiranje ne radi"
                         pass
-                
-                self.baza.dodajPoveznicu(indekser.stranica.url, novaStranica.url)
 
             # na kraju, nesto moramo i napraviti s tim novim poveznicama
             #print self.dbPoveznice
+            return self.dbPoveznice
 
 
 
@@ -181,7 +194,19 @@ class Indekser:
         
 
 
-web = Stranica('http://www.ffzg.unizg.hr') # instanca klase Stranica
-#web = Stranica('http://fer.unizg.hr') # instanca klase Stranica
-indeks = Indekser(web) # instanca klase Indekser koji prima objekt(Stranica)
-pretraga = Pretrazivac(indeks, ['ffzg.unizg.hr', 'ffzg.hr'])
+try:
+
+    web = Stranica('http://www.ffzg.unizg.hr') # instanca klase Stranica
+    #web = Stranica('http://fer.unizg.hr') # instanca klase Stranica
+    indeks = Indekser(web) # instanca klase Indekser koji prima objekt(Stranica)
+    pretraga = Pretrazivac(indeks, ['ffzg.unizg.hr', 'ffzg.hr'])
+    
+except:
+    
+    print sys.exc_info()[0]
+    raise
+    
+    
+
+print "****************"
+print "Kraj indeksiranja"
