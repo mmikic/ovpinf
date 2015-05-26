@@ -3,6 +3,7 @@ import sys
 from bs4 import BeautifulSoup
 import re
 import urlparse
+import text_hr
 
 
 # ucitamo vanjske klase
@@ -25,8 +26,8 @@ class Pretrazivac:
         self.baza = Baza()
         
         # pokrenemo inicijalno indeksiranje
-        self.indeksiraj(pocetna)
         self.baza.dodajUIndeks(pocetna.stranica.url, pocetna.juha.title.string)
+        self.indeksiraj(pocetna)
            
     
     # metoda odlucuje hocemo li posjetiti proslijedjenu adresu
@@ -43,23 +44,19 @@ class Pretrazivac:
         # ako je identicna poveznica, ne zelimo
         if adresa.identicnaPoveznica(self.inicijalnaPoveznica):
                     
-            print "Ista adresa"
-            #print adresa.segment
             return False
         
             
         # ako protokol u startu nije http:// ili https://
-        #elif adresa.segment.scheme not in [unicode('http'), unicode('https')]:
+        elif adresa.segment.netloc != '' and adresa.segment.scheme not in [unicode('http'), unicode('https')]:
                     
             #print "Krivi protokol";
             #print adresa.segment.scheme
-         #   return False
+            return False
         
         # ako je eksterna stranica u pitanju, a mi imamo ukljucenu samo lokalnu pretragu
         elif lokalno == True and adresa.lokalnaPoveznica(self.lokali) == False:
             
-            print "Adresa nije lokalna, konkretno"
-            #print adresa.segment
             return False
         
         else:
@@ -68,23 +65,43 @@ class Pretrazivac:
             return True
             
     
+    
+    # zapisuje rijeci u bazu
+    def sadrzaj(self, indekser):
+        
+        # id stranice
+        stranicaID = self.baza.IDStranice(indekser.stranica.url)
+        
+        # lista rijeci
+        rijeci = indekser.opojavnici()
+        
+        # dohvatimo stop rijeci
+        stop_rijeci = [redak[0] if redak[5] == None else redak[5] for redak in text_hr.get_all_std_words()]
+        
+        # pohranimo svaku rijec
+        for k in range(len(rijeci)):
+            
+            # preskocimo stop rijeci
+            if rijeci[k] not in stop_rijeci:
+                
+                # pohranimo u bazu
+                self.baza.dodajRijec(rijeci[k], k, int(stranicaID))
+    
+    
+    
     # glavna metoda, indeksira stranice
-    def indeksiraj(self, indekser, maksimalno=3, lokalno=True, dubina=1):
+    def indeksiraj(self, indekser, maksimalno=9, lokalno=True, dubina=1):
         
         # ispisemo dubinu
         print "==========================="
         print "Dubina: " + str(dubina)
         print "Stranica: " + str(indekser.stranica.url)
         print "==========================="
-
-        # dodamo na popis indeksiranih
-        #self.indeksirano.add(indekser.stranica.url)
             
         #
         # indeksiranje samog sadrzaja
-        # // naknadno //
         # 
-        
+        self.sadrzaj(indekser)
         
         # provjerimo smijemo li uci nivo nize
         if dubina <= maksimalno:
@@ -104,41 +121,15 @@ class Pretrazivac:
                 # provjerimo zelimo li to posjetiti
                 if self.dozvoljenaAdresa(novaStranica):
                     
-                    # pohranimo poveznicu u bazu
-                    #self.baza.dodajPoveznicu(indekser.stranica.url, novaStranica.url)
-                
                     # pokusajmo ucitati novu stranicu
                     try:
                     
                         # posjetimo i ponovimo proceduru
                         stranica = Stranica(novaStranica.url)
                     
-                    except:
-                    
-                        # ispisemo da je bilo problema
-                        print "Doslo je do pogreske prilikom ucitavanja stranice"
-                    
-                        # preskocimo problem
-                        pass
-                        
-                        
-                    # pokusamo ucitati indekser na stranicu
-                    try:
-                    
                         # dohvatimo metode
                         indeks = Indekser(Stranica(novaStranica.url))
                         self.baza.dodajUIndeks(novaStranica.url, indeks.juha.title.string)
-                        
-                        
-                    except:
-                        
-                        print "Indekser ne radi"
-                        #print sys.exc_info()[0]
-                        pass
-                    
-
-                    # pokusamo indeksirati
-                    try:
                         
                         # indeksiramo, ali povecamo dubinu
                         self.indeksiraj(indeks, dubina=(dubina+1))
@@ -147,10 +138,6 @@ class Pretrazivac:
                         
                         print "Indeksiranje ne radi"
                         pass
-
-        else:
-            
-            print "preduboko si"
 
 
 # Klasa za indeksiranje sadrzaja jedne stranice
@@ -186,16 +173,28 @@ class Indekser:
         
         # vratimo uredjeni par gdje je prva vrijednost lista poveznica, a druga broj poveznica
         return poveznice
+    
+    
+    # razdvaja na rijeci
+    def opojavnici(self):
         
+        # spremimo iskljucivo tekst stranice, bez ocuvanja semantickih elemenata
+        sadrzaj = self.juha.get_text()
+        
+        # razdvojimo na rijeci
+        rijeci = re.findall(r'\w+', sadrzaj, re.UNICODE|re.DOTALL)
+        
+        # vratimo listu rijeci
+        return rijeci
 
 
 try:
 
-    web = Stranica('http://lab.nemojkliknut.com/ovptest/dok1.html') # instanca klase Stranica
-    #web = Stranica('http://fer.unizg.hr') # instanca klase Stranica
+    #web = Stranica('http://www.ffzg.unizg.hr') # instanca klase Stranica
+    #web = Stranica('http://lab.nemojkliknut.com/ovptest2/dok1.html') # instanca klase Stranica
     indeks = Indekser(web) # instanca klase Indekser koji prima objekt(Stranica)
-    #pretraga = Pretrazivac(indeks, ['ffzg.unizg.hr', 'ffzg.hr'])
-    pretraga = Pretrazivac(indeks, ['lab.nemojkliknut.com'])
+    pretraga = Pretrazivac(indeks, ['ffzg.unizg.hr', 'ffzg.hr'])
+    #pretraga = Pretrazivac(indeks, ['lab.nemojkliknut.com'])
     
 except:
     
