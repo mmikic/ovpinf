@@ -1,5 +1,6 @@
 # importamo potrebne module
 import sqlite3
+import time
 
 
 # klasa zaduzena za rad s bazom podataka
@@ -23,6 +24,17 @@ class Baza:
         # nista ne vracamo
         self.__con.commit()
     
+    
+    # pocisti bazu
+    def isprazni(self):
+        
+        self.__con.execute('DELETE FROM Stranica')
+        self.posalji()
+        
+        self.__con.execute('VACUUM')
+        self.posalji()
+    
+    
     # izvrsi na bazu
     def izvrsi(self, upit):
         
@@ -32,16 +44,16 @@ class Baza:
     # struktura baze
     def stvoriTablice(self):
         
-        #self.izvrsi('create table Stranica(stranicaId, adresa, naslov, datumPobiranja)')
+        self.izvrsi('CREATE TABLE Stranica(stranicaID INTEGER PRIMARY KEY, adresa TEXT, naslov TEXT, datumPobiranja REAL)')
         #self.izvrsi('create table Poveznica(poveznicaId, stranicaId, )')
-        self.izvrsi('CREATE TABLE Poveznica(poveznicaId INTEGER PRIMARY KEY, izvor TEXT, smjer TEXT)')
+        #self.izvrsi('CREATE TABLE Poveznica(poveznicaId INTEGER PRIMARY KEY, izvor TEXT, smjer TEXT)')
         self.posalji()
     
     
     # provjera indeksiranosti
     def indeksiranaStranica(self, poveznica):
         
-        rez = self.pretraziPoveznicu(poveznica)
+        rez = self.pretraziIndeks(poveznica)
         
         if len(rez.fetchall()) > 0:
             
@@ -50,11 +62,20 @@ class Baza:
         return False
     
     
-    # pretraga poveznice kao izvora
-    def pretraziPoveznicu(self, pojam):
+    # pretraga stranice kao izvora
+    def pretraziIndeks(self, pojam):
         
-        return self.__con.execute("SELECT * FROM Poveznica WHERE izvor=?", [unicode(pojam)])
+        return self.__con.execute("SELECT * FROM Stranica WHERE adresa=?", [unicode(pojam)])
         
+    
+    
+    # dodaj u indeks
+    def dodajUIndeks(self, poveznica, naslov):
+        
+        self.__con.execute('INSERT INTO Stranica(adresa, naslov, datumPobiranja) VALUES (?, ?, ?)', [unicode(poveznica), unicode(naslov), time.time()])
+        self.posalji()
+    
+    
     
     # dodaj poveznicu
     def dodajPoveznicu(self, izvor, smjer):
@@ -69,9 +90,9 @@ if __name__ == '__main__':
     
     db = Baza()
     #db.stvoriTablice()
+    #db.isprazni()
     
-    
-    rez = db.izvrsi('SELECT * FROM Poveznica')
+    rez = db.izvrsi('SELECT * FROM Stranica')
     #print db.indeksiranaStranica("http://www.ffzg.unizg.hr/vezes/")
     
     rez = rez.fetchall()

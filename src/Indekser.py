@@ -21,16 +21,12 @@ class Pretrazivac:
         # pospremimo inicijalnu adresu
         self.inicijalnaPoveznica = pocetna.poveznica
         
-        # namjestimo veliki rjecnik poveznica
-        self.dbPoveznice = {}
+        # namjestimo bazu
         self.baza = Baza()
-        
-        # poveznice
-        self.indeksirano = set()
-        self.trebaIndeksirati = set()
         
         # pokrenemo inicijalno indeksiranje
         self.indeksiraj(pocetna)
+        self.baza.dodajUIndeks(pocetna.stranica.url, pocetna.juha.title.string)
            
     
     # metoda odlucuje hocemo li posjetiti proslijedjenu adresu
@@ -47,22 +43,22 @@ class Pretrazivac:
         # ako je identicna poveznica, ne zelimo
         if adresa.identicnaPoveznica(self.inicijalnaPoveznica):
                     
-            #print "Ista adresa"
+            print "Ista adresa"
             #print adresa.segment
             return False
         
             
         # ako protokol u startu nije http:// ili https://
-        elif adresa.segment.scheme not in [unicode('http'), unicode('https')]:
+        #elif adresa.segment.scheme not in [unicode('http'), unicode('https')]:
                     
             #print "Krivi protokol";
             #print adresa.segment.scheme
-            return False
+         #   return False
         
         # ako je eksterna stranica u pitanju, a mi imamo ukljucenu samo lokalnu pretragu
         elif lokalno == True and adresa.lokalnaPoveznica(self.lokali) == False:
             
-            #print "Adresa nije lokalna, konkretno"
+            print "Adresa nije lokalna, konkretno"
             #print adresa.segment
             return False
         
@@ -96,16 +92,20 @@ class Pretrazivac:
             # dohvatimo sve poveznice
             poveznice = indekser.poveznice()
             
-            #self.dbPoveznice[indekser.stranica.url] = [x.url for x in poveznice]
-            
             # za svaku od tih poveznica, napravimo isto
             for novaStranica in poveznice:
+                
+                # popravimo problem s URL-om kod pravih lokalnih stranica
+                if novaStranica.segment.netloc == '':
+                
+                    # iskrojimo putanju i samo nadodamo novu lokaciju
+                    novaStranica.url = indekser.poveznica.scheme + "://" + indekser.poveznica.netloc + "/".join(indekser.poveznica.path.split("/")[:-1]) + "/" + novaStranica.url
                 
                 # provjerimo zelimo li to posjetiti
                 if self.dozvoljenaAdresa(novaStranica):
                     
                     # pohranimo poveznicu u bazu
-                    self.baza.dodajPoveznicu(indekser.stranica.url, novaStranica.url)
+                    #self.baza.dodajPoveznicu(indekser.stranica.url, novaStranica.url)
                 
                     # pokusajmo ucitati novu stranicu
                     try:
@@ -127,6 +127,8 @@ class Pretrazivac:
                     
                         # dohvatimo metode
                         indeks = Indekser(Stranica(novaStranica.url))
+                        self.baza.dodajUIndeks(novaStranica.url, indeks.juha.title.string)
+                        
                         
                     except:
                         
@@ -146,11 +148,9 @@ class Pretrazivac:
                         print "Indeksiranje ne radi"
                         pass
 
-
-            # na kraju, nesto moramo i napraviti s tim novim poveznicama
-            #print self.dbPoveznice
-            return self.dbPoveznice
-
+        else:
+            
+            print "preduboko si"
 
 
 # Klasa za indeksiranje sadrzaja jedne stranice
@@ -191,16 +191,16 @@ class Indekser:
 
 try:
 
-    web = Stranica('http://www.ffzg.unizg.hr') # instanca klase Stranica
+    web = Stranica('http://lab.nemojkliknut.com/ovptest/dok1.html') # instanca klase Stranica
     #web = Stranica('http://fer.unizg.hr') # instanca klase Stranica
     indeks = Indekser(web) # instanca klase Indekser koji prima objekt(Stranica)
-    pretraga = Pretrazivac(indeks, ['ffzg.unizg.hr', 'ffzg.hr'])
+    #pretraga = Pretrazivac(indeks, ['ffzg.unizg.hr', 'ffzg.hr'])
+    pretraga = Pretrazivac(indeks, ['lab.nemojkliknut.com'])
     
 except:
     
     print sys.exc_info()[0]
     raise
-    
     
 
 print "****************"

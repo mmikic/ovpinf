@@ -31,6 +31,10 @@ class Poveznica:
         
     # metoda provjerava je li druga poveznica, koja se proslijedjuje kao argument metode, identicna
     def identicnaPoveznica(self, drugaPoveznica):
+        
+        if self.segment.netloc == '' and self.segment.path.split('/')[-1] == drugaPoveznica.path.split('/')[-1]:
+            
+            return True
     
         if (self.segment.netloc == drugaPoveznica.netloc) and (self.pocistiKrajAdrese(self.segment.path) == self.pocistiKrajAdrese(drugaPoveznica.path)) and (self.segment.params == drugaPoveznica.params) and (self.segment.query == drugaPoveznica.query):
             
@@ -42,6 +46,11 @@ class Poveznica:
         
     # metoda provjerava je li druga poveznica, koja se proslijedjuje kao argument metode, lokalna
     def lokalnaPoveznica(self, lokali):
+        
+        # ako opce nema netloc, onda je definitivno lokalna
+        if self.segment.netloc == '':
+            
+            return True
         
         # maknemo www.
         adresa = self.pocistiWorldWideWeb(self.segment.netloc) 
