@@ -38,6 +38,24 @@ class Baza:
         self.posalji()
     
     
+    # provjera indeksiranosti
+    def indeksiranaStranica(self, poveznica):
+        
+        rez = self.pretraziPoveznicu(poveznica)
+        
+        if len(rez.fetchall()) > 0:
+            
+            return True
+            
+        return False
+    
+    
+    # pretraga poveznice kao izvora
+    def pretraziPoveznicu(self, pojam):
+        
+        return self.__con.execute("SELECT * FROM Poveznica WHERE izvor=?", [unicode(pojam)])
+        
+    
     # dodaj poveznicu
     def dodajPoveznicu(self, izvor, smjer):
         
@@ -53,9 +71,9 @@ if __name__ == '__main__':
     #db.stvoriTablice()
     
     
-    
-    
     rez = db.izvrsi('SELECT * FROM Poveznica')
+    #print db.indeksiranaStranica("http://www.ffzg.unizg.hr/vezes/")
+    
     rez = rez.fetchall()
     
     for red in rez:

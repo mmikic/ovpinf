@@ -37,7 +37,7 @@ class Pretrazivac:
     def dozvoljenaAdresa(self, adresa, lokalno=True):
         
         # ako je vec na popisu indeksiranih
-        if adresa.url in self.indeksirano:
+        if self.baza.indeksiranaStranica(adresa.url):
             
             # nista od toga
             print "adresa je vec indeksirana"
@@ -71,8 +71,6 @@ class Pretrazivac:
             #print "Sve ok"
             return True
             
-        
-            
     
     # glavna metoda, indeksira stranice
     def indeksiraj(self, indekser, maksimalno=3, lokalno=True, dubina=1):
@@ -84,7 +82,7 @@ class Pretrazivac:
         print "==========================="
 
         # dodamo na popis indeksiranih
-        self.indeksirano.add(indekser.stranica.url)
+        #self.indeksirano.add(indekser.stranica.url)
             
         #
         # indeksiranje samog sadrzaja
@@ -98,17 +96,13 @@ class Pretrazivac:
             # dohvatimo sve poveznice
             poveznice = indekser.poveznice()
             
-            self.dbPoveznice[indekser.stranica.url] = [x.url for x in poveznice]
+            #self.dbPoveznice[indekser.stranica.url] = [x.url for x in poveznice]
             
             # za svaku od tih poveznica, napravimo isto
             for novaStranica in poveznice:
                 
                 # provjerimo zelimo li to posjetiti
                 if self.dozvoljenaAdresa(novaStranica):
-                    
-                    
-                    print " - " + indekser.stranica.url
-                    print " -- " + novaStranica.url
                     
                     # pohranimo poveznicu u bazu
                     self.baza.dodajPoveznicu(indekser.stranica.url, novaStranica.url)
@@ -151,6 +145,7 @@ class Pretrazivac:
                         
                         print "Indeksiranje ne radi"
                         pass
+
 
             # na kraju, nesto moramo i napraviti s tim novim poveznicama
             #print self.dbPoveznice
