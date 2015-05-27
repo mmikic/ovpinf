@@ -38,9 +38,15 @@ class Baza:
     
     
     # izvrsi na bazu
-    def izvrsi(self, upit):
+    def izvrsi(self, upit, args = None):
         
-        return self.__con.execute(upit)
+        if args == None:
+        
+            return self.__con.execute(upit)
+            
+        else:
+            
+            return self.__con.execute(upit, args)
         
     
     # struktura baze
@@ -72,9 +78,9 @@ class Baza:
     
     
     # dodaj u indeks
-    def dodajUIndeks(self, poveznica, naslov):
+    def dodajStranicu(self, adresa, naslov):
         
-        self.__con.execute('INSERT INTO Stranica(adresa, naslov, datumPobiranja) VALUES (?, ?, ?)', [unicode(poveznica), unicode(naslov), time.time()])
+        self.__con.execute('INSERT INTO Stranica(adresa, naslov, datumPobiranja) VALUES (?, ?, ?)', [unicode(adresa), unicode(naslov), time.time()])
         self.posalji()
     
     
@@ -88,7 +94,7 @@ class Baza:
         
        
     # vraca ID stranice ako ona postoji u bazi
-    def IDStranice(self, adresa):
+    def stranicaID(self, adresa):
         
         # upit
         upit = self.__con.execute('SELECT stranicaID FROM Stranica WHERE adresa = ?', [unicode(adresa)]).fetchall()
@@ -101,7 +107,7 @@ class Baza:
             
             
         # vratimo pogresku
-        return False
+        return -1
              
          
     
@@ -120,12 +126,14 @@ if __name__ == '__main__':
     #db.stvoriTablice()
     #db.isprazni()
     
-    #rez = db.izvrsi('SELECT stranicaID, adresa FROM Stranica')
-    rez = db.izvrsi('SELECT * FROM Rijec')
-    #print db.indeksiranaStranica("http://www.ffzg.unizg.hr/vezes/")
+    #rez = db.izvrsi('SELECT naslov FROM Stranica')
+    #rez = db.izvrsi('SELECT rijec FROM Rijec')
+    rez = db.izvrsi('SELECT Rijec.rijec, Rijec.pozicija, Stranica.adresa FROM Rijec INNER JOIN Stranica ON Rijec.adresa = Stranica.stranicaID WHERE Rijec.rijec = ? LIMIT 20', [unicode('fakultetu')])
     
     rez = rez.fetchall()
+    print len(rez)
     
     for red in rez:
         
         print red
+    

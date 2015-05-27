@@ -11,7 +11,7 @@ from Stranica import Stranica
 from Poveznica import Poveznica
 from Baza import Baza
 
-class Pretrazivac:
+class Puzac:
     
     # zapocnemo indeksiranje
     def __init__(self, pocetna, lokali = []):
@@ -26,7 +26,7 @@ class Pretrazivac:
         self.baza = Baza()
         
         # pokrenemo inicijalno indeksiranje
-        self.baza.dodajUIndeks(pocetna.stranica.url, pocetna.juha.title.string)
+        self.baza.dodajStranicu(pocetna.stranica.url, pocetna.juha.title.string)
         self.indeksiraj(pocetna)
            
     
@@ -70,7 +70,7 @@ class Pretrazivac:
     def sadrzaj(self, indekser):
         
         # id stranice
-        stranicaID = self.baza.IDStranice(indekser.stranica.url)
+        stranicaID = self.baza.stranicaID(indekser.stranica.url)
         
         # lista rijeci
         rijeci = indekser.opojavnici()
@@ -129,7 +129,7 @@ class Pretrazivac:
                     
                         # dohvatimo metode
                         indeks = Indekser(Stranica(novaStranica.url))
-                        self.baza.dodajUIndeks(novaStranica.url, indeks.juha.title.string)
+                        self.baza.dodajStranicu(novaStranica.url, indeks.juha.title.string)
                         
                         # indeksiramo, ali povecamo dubinu
                         self.indeksiraj(indeks, dubina=(dubina+1))
@@ -164,6 +164,7 @@ class Indekser:
         return BeautifulSoup(self.stranica.izvor)
     
     
+    
     # Vraca sve poveznice koje se nalaze u stranici
     def poveznice(self):
         
@@ -173,6 +174,7 @@ class Indekser:
         
         # vratimo uredjeni par gdje je prva vrijednost lista poveznica, a druga broj poveznica
         return poveznice
+    
     
     
     # razdvaja na rijeci
@@ -190,10 +192,10 @@ class Indekser:
 
 try:
 
-    #web = Stranica('http://www.ffzg.unizg.hr') # instanca klase Stranica
+    web = Stranica('http://www.ffzg.unizg.hr') # instanca klase Stranica
     #web = Stranica('http://lab.nemojkliknut.com/ovptest2/dok1.html') # instanca klase Stranica
     indeks = Indekser(web) # instanca klase Indekser koji prima objekt(Stranica)
-    pretraga = Pretrazivac(indeks, ['ffzg.unizg.hr', 'ffzg.hr'])
+    pretraga = Puzac(indeks, ['ffzg.unizg.hr', 'ffzg.hr'])
     #pretraga = Pretrazivac(indeks, ['lab.nemojkliknut.com'])
     
 except:
