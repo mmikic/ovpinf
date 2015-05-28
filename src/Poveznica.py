@@ -53,6 +53,9 @@ class Poveznica:
         # uklonimo www.
         adresa = self.pocistiWorldWideWeb(adresa)
         
+        # uklonimo sve iza #
+        adresa = adresa if adresa.rfind('#') == -1 else adresa[:adresa.rfind('#')]
+        
         # iskrojimo pravilnu adresu
         adresa = urlparse.urljoin(izvorno, adresa)
         

@@ -96,11 +96,11 @@ class Puzac:
 if __name__ == "__main__":
     
     # definiramo lokale i iznimke
-    lokali = ['lab.nemojkliknut.com']
-    iznimke = []
+    lokali = ['ffzg.hr', 'ffzg.unizg.hr']
+    iznimke = ['czon.ffzg.hr', 'czon.ffzg.unizg.hr']
     
     # definiramo inicijalnu adresu
-    inicijalnaAdresa = BeautifulSoup('<a href="http://lab.nemojkliknut.com/ovptest/dok1.html">Dokument 1</a>')
+    inicijalnaAdresa = BeautifulSoup('<a href="http://www.ffzg.unizg.hr/">Filozofski fakultet Sveucilista u Zagrebu</a>')
     inicijalnaAdresa = inicijalnaAdresa('a')[0]
     
     # instanciramo incijalnu poveznicu

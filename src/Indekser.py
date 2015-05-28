@@ -90,7 +90,8 @@ class Indekser:
         
         # razdvojimo na rijeci
         #rijeci = re.findall(r'\w+', sadrzaj, re.UNICODE|re.DOTALL)
-        rijeci = re.findall(r'[a-zA-Z]+', sadrzaj, re.UNICODE|re.DOTALL)
+        # [^\W\d_]
+        rijeci = re.findall(r'[^\W\d_]+', sadrzaj, re.UNICODE|re.DOTALL)
         
         # vratimo listu rijeci
         return rijeci
