@@ -36,7 +36,6 @@ class Puzac:
     
     """ Puze po Internetu
     
-    
     Args:
         adresa (Poveznica): instanca klase Poveznica
         dubina (int): trenutna dubina na kojoj se puz nalazi
@@ -49,6 +48,9 @@ class Puzac:
             # dodamo ju na popis posjecenih adresa, neovisno o tome hoce li posjet biti uspjesan ili ne
             self.posjeceneAdrese.append(adresa)
             
+            # namjestimo praznu listu poveznica koju cemo napuniti ako se pronadu nove poveznice
+            poveznice = []
+            
             # pokusamo posjetiti
             try:
                 
@@ -56,13 +58,10 @@ class Puzac:
                 sadrzaj = Stranica(adresa)
                 
                 # indeksiramo instancu klase Stranica
-                Indeksiraj(sadrzaj)
+                podaci = Indeksiraj(sadrzaj)
                 
-                
-                """
-                TO DO: definirati koja klasa izvlaci sve poveznice
-                """
-                
+                # pohranimo sve poveznice aktualne stranice, postaje lista instanci klase Poveznica
+                poveznice = podaci.poveznice()
                 
             # u slucaju pogreske, javimo
             except:
@@ -72,11 +71,11 @@ class Puzac:
                 pass
         
         
-        
-        
-        
-        
-        
-        
-        
+            # postupak ponovimo za svaku poveznicu
+            for poveznica in poveznice:
+                
+                # rekurzivno pozovemo metodu 
+                puz(poveznica, dubina=(dubina+1))
+                
+                
         
