@@ -12,9 +12,13 @@ class Poveznica:
     Instancira klasu Baza.py, stvara konekciju sa SQLite bazom podataka, zapocinje puzanje po Internetu
     
     Args:
-        poveznica (BeautifulSoup <a> cvor)
+        poveznica (BeautifulSoup <a> cvor): poveznica koju provjeravamo i krojimo
+        izvornaPoveznica (Poveznica): izvorna poveznica s koje sve i dolazi
     """
-    def __init__(self, poveznica):
+    def __init__(self, poveznica, izvornaPoveznica):
+        
+        # pohranimo izvornu poveznicu
+        self.izvorno = izvornaPoveznica
         
         # pohranimo naziv poveznice 
         self.naziv = poveznica.get_text()
@@ -61,10 +65,7 @@ class Poveznica:
     """
     def provjeri(self):
         
-        print "provjeravam"
-        
-        
-
+     
         
     """ pocistiWorldWideWeb()
     
@@ -137,29 +138,27 @@ class Poveznica:
         return False
     
     
-    
-    
         
     """ identicnaPoveznica()
     
-    Provjerava je li adresa proslijedena kao argument identicna onoj koja se nalazi u instanci
-    
-    Args:
-        adresa (string): adresa koja se usporeduje
+    Provjerava je li adresa identicna izvornoj adresi
     
     Return:
         bool
     """
-    def identicnaPoveznica(self, adresa):
+    def identicnaPoveznica(self):
         
         #if self.segment.netloc == '' and self.segment.path.split('/')[-1] == drugaPoveznica.path.split('/')[-1]:
             
             #return True
     
-        if (self.segment.netloc == drugaPoveznica.netloc) and (self.pocistiKrajAdrese(self.segment.path) == self.pocistiKrajAdrese(drugaPoveznica.path)) and (self.segment.params == drugaPoveznica.params) and (self.segment.query == drugaPoveznica.query):
+        #if (self.segment.netloc == drugaPoveznica.netloc) and (self.pocistiKrajAdrese(self.segment.path) == self.pocistiKrajAdrese(drugaPoveznica.path)) and (self.segment.params == drugaPoveznica.params) and (self.segment.query == drugaPoveznica.query):
+        if self.segment == self.izvorno.segment:
             
+            # potvrdimo da je
             return True
             
+        # potvrdimo da nije
         return False
         
         
@@ -178,4 +177,3 @@ if __name__ == '__main__':
     
     # instanciramo poveznicu
     poveznica = Poveznica(link[0])
-    

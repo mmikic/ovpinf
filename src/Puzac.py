@@ -61,7 +61,7 @@ class Puzac:
                 podaci = Indeksiraj(sadrzaj)
                 
                 # pohranimo sve poveznice aktualne stranice, postaje lista instanci klase Poveznica
-                poveznice = podaci.poveznice()
+                poveznice = podaci.poveznice(adresa)
                 
             # u slucaju pogreske, javimo
             except:

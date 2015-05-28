@@ -166,11 +166,11 @@ class Indekser:
     
     
     # Vraca sve poveznice koje se nalaze u stranici
-    def poveznice(self):
+    def poveznice(self, adresa):
         
         # dohvatimo poveznice
         sirove_poveznice = self.juha('a')
-        poveznice = [Poveznica(poveznica) for poveznica in sirove_poveznice] 
+        poveznice = [Poveznica(poveznica, adresa) for poveznica in sirove_poveznice] 
         
         # vratimo uredjeni par gdje je prva vrijednost lista poveznica, a druga broj poveznica
         return poveznice
