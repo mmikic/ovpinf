@@ -14,25 +14,26 @@ class Poveznica:
     Args:
         poveznica (BeautifulSoup <a> cvor): poveznica koju provjeravamo i krojimo
         izvornaPoveznica (Poveznica): izvorna poveznica s koje sve i dolazi
+        lokali (list of strings): lista lokala
+        iznimke (list of strings)
     """
-    def __init__(self, poveznica, izvornaPoveznica):
+    def __init__(self, poveznica, izvornaPoveznica="", lokali=[], iznimke=[]):
         
         # pohranimo izvornu poveznicu
         self.izvorno = izvornaPoveznica
-        
-        # pohranimo naziv poveznice 
         self.naziv = poveznica.get_text()
+        self.atributi = poveznica.attrs
         
         # pohranimo ispravljenu punu putanju poveznice
         self.url = self.ispravi(poveznica.get('href'))
         
-        # pohranimo atribute poveznice
-        self.atributi = poveznica.attrs
-        
         # pohranimo segmente poveznice
         self.segment = urlparse.urlparse(self.url)
-       
         
+        # pohranimo lokale i iznimke
+        self.lokali = lokali
+        self.iznimke = iznimke
+    
     
     """ ispravi()
     
@@ -45,25 +46,53 @@ class Poveznica:
         adresa (string): ispravljena adresa
     """
     def ispravi(self, adresa):
-        
+
+        # izvorna poveznica
+        izvorno = self.izvorno if self.izvorno == "" else self.izvorno.url
+
         # uklonimo www.
         adresa = self.pocistiWorldWideWeb(adresa)
+        
+        # iskrojimo pravilnu adresu
+        adresa = urlparse.urljoin(izvorno, adresa)
         
         # vratimo ispravljenu adresu
         return adresa
         
         
-        
     
     
-    """ provjeri()
+    """ ispravna()
     
     Provjerava je li vazeca adresa
     
     Return:
         bool
     """
-    def provjeri(self):
+    def ispravna(self):
+        
+        # ako protokol nije http ili https
+        if self.segment.scheme not in ['http', 'https']:
+            
+            return False
+        
+        # ako nije lokalna poveznica
+        elif not self.lokalnaPoveznica():
+            
+            return False
+        
+        # ako je zabranjena poveznica
+        elif self.zabranjenaPoveznica():
+        
+            return False
+            
+        # ako je identicna poveznica
+        elif self.identicnaPoveznica():
+            
+            return False
+            
+        # inace je sve u redu
+        return True
         
      
         
@@ -90,17 +119,14 @@ class Poveznica:
     """ lokalnaPoveznica()
     
     Provjerava je li adresa lokalna
-    
-    Args:
-        lokali (list of strings): lista adresa unutar koje mora biti
-    
+
     Return:
         bool
     """
-    def lokalnaPoveznica(self, lokali):
+    def lokalnaPoveznica(self):
         
         # prodjemo kroz sve lokale
-        for lokal in lokali:
+        for lokal in self.lokali:
             
             # i provjerimo nalaze li se unutar zeljene adrese
             if lokal in self.segment.netloc:
@@ -117,19 +143,16 @@ class Poveznica:
     
     Provjerava je li adresa na popisu zabranjenih
     
-    Args:
-        zabranjene (list of strings): lista adresa unutar koje mora biti
-    
     Return:
         bool
     """
-    def zabranjenaPoveznica(self, zabranjene):
+    def zabranjenaPoveznica(self):
         
         # prodjemo kroz sve zabranjene adrese
-        for zabranjena in zabranjene:
+        for iznimka in self.iznimke:
             
             # i provjerimo nalaze li se unutar zeljene adrese
-            if zabranjena in self.segment.netloc:
+            if iznimka in self.segment.netloc:
                 
                 # ako je, vratimo True i zavrsimo petlju
                 return True

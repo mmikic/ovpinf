@@ -1,11 +1,18 @@
 """ Puzac.py klasa za puzanje Internet stranicama """
 
+# ucitamo vanjske klase
+from bs4 import BeautifulSoup
+from Stranica import Stranica
+from Indekser import Indekser
+from Poveznica import Poveznica
+from Baza import Baza
+
 
 class Puzac:
     
     # pohranimo neke predefinirane postavke
-    self.maksimalnaDubina = 10
-    self.lokalno = True
+    maksimalnaDubina = 10
+    lokalno = True
     
     
     """ Konstruktor
@@ -43,10 +50,13 @@ class Puzac:
     def puz(self, adresa, dubina=1):
         
         # ako je trenutna dubina manja od maksimalne i stranice vec nije posjecena
-        if dubina < self.maksimalnaDubina and adresa not in self.posjeceneAdrese:
+        if dubina < self.maksimalnaDubina and adresa.url not in self.posjeceneAdrese:
+            
+            # ispisemo nesto ipak da znamo sto se dogada
+            print "<" + adresa.url + "> (D: " + str(dubina) + ")"
             
             # dodamo ju na popis posjecenih adresa, neovisno o tome hoce li posjet biti uspjesan ili ne
-            self.posjeceneAdrese.append(adresa)
+            self.posjeceneAdrese.append(adresa.url)
             
             # namjestimo praznu listu poveznica koju cemo napuniti ako se pronadu nove poveznice
             poveznice = []
@@ -58,10 +68,10 @@ class Puzac:
                 sadrzaj = Stranica(adresa)
                 
                 # indeksiramo instancu klase Stranica
-                podaci = Indeksiraj(sadrzaj)
+                podaci = Indekser(sadrzaj, adresa, self.baza, self.lokali, self.iznimke)
                 
                 # pohranimo sve poveznice aktualne stranice, postaje lista instanci klase Poveznica
-                poveznice = podaci.poveznice(adresa)
+                poveznice = podaci.poveznice()
                 
             # u slucaju pogreske, javimo
             except:
@@ -70,12 +80,37 @@ class Puzac:
                 print "Neuspjesno puzanje po stranici"
                 pass
         
-        
+            
             # postupak ponovimo za svaku poveznicu
             for poveznica in poveznice:
                 
-                # rekurzivno pozovemo metodu 
-                puz(poveznica, dubina=(dubina+1))
+                # provjerimo je li vazeca poveznica
+                if poveznica.ispravna():
                 
-                
-        
+                    # rekurzivno pozovemo metodu 
+                    self.puz(poveznica, dubina=(dubina+1))
+                    
+                    
+
+""" ispaljivanje rakete """
+if __name__ == "__main__":
+    
+    # definiramo lokale i iznimke
+    lokali = ['lab.nemojkliknut.com']
+    iznimke = []
+    
+    # definiramo inicijalnu adresu
+    inicijalnaAdresa = BeautifulSoup('<a href="http://lab.nemojkliknut.com/ovptest/dok1.html">Dokument 1</a>')
+    inicijalnaAdresa = inicijalnaAdresa('a')[0]
+    
+    # instanciramo incijalnu poveznicu
+    inicijalnaPoveznica = Poveznica(inicijalnaAdresa, lokali=lokali, iznimke=iznimke)
+    
+    # javimo da krecemo
+    print "Zapocinjem indeksiranje.."
+    
+    # zapocnemo puzanje
+    Puzac(inicijalnaPoveznica, lokali, iznimke) 
+    
+    # javimo da je kraj
+    print "Indeksiranje zavrseno"

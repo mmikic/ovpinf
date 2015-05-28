@@ -6,11 +6,27 @@ import time
 # klasa zaduzena za rad s bazom podataka
 class Baza:
 
-	# konstruktor
-    def __init__(self, imeBaze='db/poveznice.db'):
+
+    """ Konstruktor
+    
+    Instancira klasu Baza.py, stvara konekciju sa SQLite bazom podataka, zapocinje puzanje po Internetu
+    
+    Args:
+        imeBaze (string): ime zeljene baze
+    """
+    def __init__(self, imeBaze=''):
 	
+        # generiramo nasumicno ime baze
+        if imeBaze == '':
+            
+            # nasumicno ime
+            imeBaze = 'db/' + (str(time.time()).replace('.', '_')) + ".db"
+    
         # spajanje
         self.__con = sqlite3.connect(imeBaze)
+        
+        # napravimo tablice
+        self.stvoriTablice()
 
 
     # destruktor
@@ -52,8 +68,7 @@ class Baza:
     # struktura baze
     def stvoriTablice(self):
         
-        #self.izvrsi('CREATE TABLE Stranica(stranicaID INTEGER PRIMARY KEY, adresa TEXT, naslov TEXT, datumPobiranja REAL)')
-        #self.izvrsi('CREATE TABLE Poveznica(poveznicaId INTEGER PRIMARY KEY, izvor TEXT, smjer TEXT)')
+        self.izvrsi('CREATE TABLE Stranica(stranicaID INTEGER PRIMARY KEY, adresa TEXT, naslov TEXT, datumPobiranja REAL)')
         self.izvrsi('CREATE TABLE Rijec(rijecID INTEGER PRIMARY KEY, rijec TEXT, pozicija INTEGER, adresa INTEGER)')
         self.posalji()
     
