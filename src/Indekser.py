@@ -74,6 +74,21 @@ class Indekser:
         return [Poveznica(poveznica, self.adresa, self.lokali, self.iznimke) for poveznica in sirove_poveznice]
         
         
+		
+	"""
+	
+		Iskljucuje elemente koji su unutar CSS-a i sl.
+		Preuzeto: http://www.quora.com/How-I-can-extract-only-text-data-from-HTML-pages
+	"""
+    def iskljucno(self, element):		
+		
+        if element.parent.name in ['style', 'script', '[document]', 'head']:
+            return False
+		
+        elif re.match(r'a href=".*?" rel=".*?" title=".*?', str(element.encode('utf8').strip()), re.UNICODE|re.DOTALL):
+            return False
+		
+        return True
     
     
     """ opojavnici()
@@ -86,15 +101,18 @@ class Indekser:
     def opojavnici(self):
         
         # spremimo iskljucivo tekst stranice, bez ocuvanja semantickih elemenata
-        sadrzaj = self.juha.get_text()
+		sadrzaj = self.juha.findAll(text=True)
+		
+		# profiltriramo
+		sadrzaj = filter(self.iskljucno, sadrzaj)
         
-        # razdvojimo na rijeci
+		# razdvojimo na rijeci
         #rijeci = re.findall(r'\w+', sadrzaj, re.UNICODE|re.DOTALL)
         # [^\W\d_]
-        rijeci = re.findall(r'[^\W\d_]+', sadrzaj, re.UNICODE|re.DOTALL)
+		rijeci = re.findall(r'[^\W\d_]+', ",".join(sadrzaj), re.UNICODE|re.DOTALL)
         
         # vratimo listu rijeci
-        return rijeci
+		return rijeci
         
        
        
@@ -124,4 +142,21 @@ class Indekser:
                 
                 # pohranimo u bazu
                 self.baza.dodajRijec(rijeci[k].strip().lower(), k, int(stranicaID))
+                
+                
+   
+# testiranje
+             
+if __name__ == "__main__":
     
+    """import urllib2
+    
+    adresa = "http://www.ffzg.unizg.hr"
+    sadrzaj = urllib2.urlopen(adresa).read().decode('utf8')
+    
+    juha = BeautifulSoup(sadrzaj)
+    
+   
+	rijeci = re.findall(r'[^\W\d_]+', ",".join(result), re.UNICODE|re.DOTALL)
+    
+    print rijeci[-40:]"""

@@ -97,7 +97,7 @@ if __name__ == "__main__":
     
     # definiramo lokale i iznimke
     lokali = ['ffzg.hr', 'ffzg.unizg.hr']
-    iznimke = ['czon.ffzg.hr', 'czon.ffzg.unizg.hr']
+    iznimke = ['czon.ffzg.hr', 'czon.ffzg.unizg.hr', 'theta.ffzg.hr/ECTS', 'theta.ffzg.unizg.hr/ECTS']
     
     # definiramo inicijalnu adresu
     inicijalnaAdresa = BeautifulSoup('<a href="http://www.ffzg.unizg.hr/">Filozofski fakultet Sveucilista u Zagrebu</a>')
