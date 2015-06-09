@@ -45,7 +45,7 @@ class Stranica:
             zahtjev.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36')
             
             # pokusamo dohvatiti sadrzaj
-            odgovor = urllib2.urlopen(self.adresa.url)
+            odgovor = urllib2.urlopen(zahtjev, timeout=5)
             
             # ako je sve u redu
             if odgovor.getcode() == 200 and odgovor.info()['Content-Type'].split(';')[0] == 'text/html':
@@ -58,3 +58,4 @@ class Stranica:
             
             print "Pogreska prilikom ucitavanje stranice na adresi: " + self.url
             raise
+            

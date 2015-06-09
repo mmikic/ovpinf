@@ -11,7 +11,7 @@ from Baza import Baza
 class Puzac:
     
     # pohranimo neke predefinirane postavke
-    maksimalnaDubina = 10
+    maksimalnaDubina = 15
     lokalno = True
     
     
@@ -50,7 +50,7 @@ class Puzac:
     def puz(self, adresa, dubina=1):
         
         # ako je trenutna dubina manja od maksimalne i stranice vec nije posjecena
-        if dubina < self.maksimalnaDubina and adresa.url not in self.posjeceneAdrese:
+        if dubina <= self.maksimalnaDubina and adresa.url not in self.posjeceneAdrese:
             
             # ispisemo nesto ipak da znamo sto se dogada
             print "<" + adresa.url + "> (D: " + str(dubina) + ")"
