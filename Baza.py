@@ -80,6 +80,8 @@ class Baza:
 
         sql_kompletan = sql_select[:-2] + " " + sql_from[:-2] + " " + sql_where[:-5]
 
+        print sql_kompletan
+
         return self.__con.execute(sql_kompletan, [unicode(x) for x in rijeci])
 		
     

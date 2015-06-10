@@ -31,7 +31,7 @@ class Puzac:
         self.iznimke = iznimke
         
         # pohranimo instancu baze
-        self.baza = Baza()
+        self.baza = Baza("db/1433846220_6.db")
         
         # kreiramo praznu listu posjecenih stranica
         self.posjeceneAdrese = []
@@ -96,11 +96,11 @@ class Puzac:
 if __name__ == "__main__":
     
     # definiramo lokale i iznimke
-    lokali = ['ffzg.hr', 'ffzg.unizg.hr']
-    iznimke = ['czon.ffzg.hr', 'czon.ffzg.unizg.hr', 'theta.ffzg.hr/ECTS', 'theta.ffzg.unizg.hr/ECTS']
+    lokali = ['inf.ffzg.unizg.hr']
+    iznimke = []
     
     # definiramo inicijalnu adresu
-    inicijalnaAdresa = BeautifulSoup('<a href="http://www.ffzg.unizg.hr/">Filozofski fakultet Sveucilista u Zagrebu</a>')
+    inicijalnaAdresa = BeautifulSoup('<a href="http://inf.ffzg.unizg.hr/index.php/hr/">Naslovnica</a>')
     inicijalnaAdresa = inicijalnaAdresa('a')[0]
     
     # instanciramo incijalnu poveznicu

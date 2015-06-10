@@ -12,15 +12,12 @@ class Pretrazivac:
 			imeBaze (string): naziv SQLite baze prema kojoj ce se pretrazivati
 	"""
 	def __init__(self, imeBaze):
-		
-		# kontrolna varijabla
-		self.stop = False
-		
+
 		# pohranimo objekt Baze
 		self.baza = Baza(imeBaze)
 		
 		# vrtimo se dok ne dobijemo zadovoljavajuci upit
-		while self.stop == False:
+		while True:
 
 			# postavljamo pitanje
 			upit = raw_input("Upisite pojam za pretrazivanje: ")
@@ -42,7 +39,7 @@ class Pretrazivac:
 		print "===" * 10
 	
 		# uredimo pojam pretrage
-		rijeci = re.findall(r'[^\W\d_]+', upit.decode('utf8'), re.UNICODE|re.DOTALL)
+		rijeci = re.findall(r'[^\W\d_]+', upit.decode('utf8').lower(), re.UNICODE|re.DOTALL)
 		
 		# pretrazimo bazu
 		rezultati = self.baza.pretrazi(rijeci)
@@ -62,12 +59,12 @@ class Pretrazivac:
 			# frekvencijska distribucija, normalizirana, s koeficijentom
 			frek_distr = self.frekvencijskaDistribucija(rjecnik)
 			frek_distr = self.normalizacijaVrijednosti(frek_distr, 1)
-			frek_distr = self.uvediKoeficijent(frek_distr, 1.65)
+			frek_distr = self.uvediKoeficijent(frek_distr, 1.35)
 			
 			# pozicijska distribucija, normalizirana, s koeficijentom
 			poz_distr = self.frekvencijskaDistribucija(rjecnik)
 			poz_distr = self.normalizacijaVrijednosti(poz_distr)
-			poz_distr = self.uvediKoeficijent(poz_distr, 1.35)
+			poz_distr = self.uvediKoeficijent(poz_distr, 1)
 			
 			# unificiramo vrijednosti u rangiranu listu rezultata
 			rangirano = self.unificirajVrijednosti([frek_distr, poz_distr])
@@ -75,9 +72,6 @@ class Pretrazivac:
 			
 			# ispisemo rezultate
 			self.ispisiRezultate(rangirano)
-		
-		# ponovimo proces
-		self.stop = False
 	
 	
 	""" ispisiRezultate()
