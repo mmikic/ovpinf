@@ -55,7 +55,7 @@ class Pretrazivac:
 		
 			# formiramo pravilni rjecnik
 			rjecnik = self.pretvoriURjecnik(rezultati, rijeci)
-			
+
 			# frekvencijska distribucija, normalizirana, s koeficijentom
 			frek_distr = self.frekvencijskaDistribucija(rjecnik)
 			frek_distr = self.normalizacijaVrijednosti(frek_distr, 1)
@@ -86,11 +86,13 @@ class Pretrazivac:
 	"""
 	def ispisiRezultate(self, rangirano):
 		
+		b = 1
 		for element in rangirano[:10]:
 			
-			print "<" + element[0] + ">"
-			print "Relevantnost: " + str(element[1])
-			print "---" * 10
+			print "[" + str(b) + "] " + self.baza.pretraziIndeks(element[0]).fetchone()[2].strip()
+			print "[*] " + element[0]
+			print "\n"
+			b += 1
 	
 	
 	""" unificirajVrijednosti()
@@ -164,6 +166,7 @@ class Pretrazivac:
 			return dict([(stranica, float(vrijednost)/maksimum) for (stranica, vrijednost) in rjecnik.items()]) 
 		
 	
+    
 	""" pozicijskaDistribucija()
 	
 		prima rjecnik i modificira ga na nacin da zapise prosjecnu udaljenost svih relevantnih rijeci za jedan dokument

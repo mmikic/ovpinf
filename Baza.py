@@ -63,7 +63,7 @@ class Baza:
 		
         sql_select = "SELECT Stranica.adresa, "
         sql_from = "FROM Stranica, "
-        sql_where = "WHERE Stranica.stranicaID = r0.adresa AND "
+        sql_where = "WHERE "
 		
         b = 0
         for rijec in rijeci:
@@ -71,7 +71,7 @@ class Baza:
             sql_select += "r" + str(b) + ".pozicija, "
             sql_from += "Rijec r" + str(b) + ", "
 	
-            sql_where += "r" + str(b) + ".rijec = ? AND "
+            sql_where += "r" + str(b) + ".rijec = ? AND Stranica.stranicaID = r" + str(b) + ".adresa AND "
 
             if b > 0:
                 sql_where += "r" + str(b) + ".adresa = r" + str(b-1) + ".adresa AND "
@@ -80,10 +80,9 @@ class Baza:
 
         sql_kompletan = sql_select[:-2] + " " + sql_from[:-2] + " " + sql_where[:-5]
 
-        print sql_kompletan
-
         return self.__con.execute(sql_kompletan, [unicode(x) for x in rijeci])
 		
+    
     
     # izvrsi na bazu
     def izvrsi(self, upit, args = None):
