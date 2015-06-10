@@ -1,216 +1,162 @@
 # ucitamo potrebne module
-import urllib2
 from bs4 import BeautifulSoup
-import urlparse
 import re
+import text_hr
+from Poveznica import Poveznica
 
-class Poveznica:
+
+""" Indekser.py klasa za Indeksiranje sadrzaja jedne stranice """
+
+class Indekser:
+       
+        
+    """ Konstruktor
     
-    def __init__(self, poveznica):
-        
-        self.naziv = poveznica.get_text()
-        self.url = urlparse.urlparse(poveznica.get('href'))
-        self.atributi = poveznica.attrs
-        
-    # metoda provjerava je li druga poveznica, koja se proslijedjuje kao argument metode, identicna
-    def identicnaPoveznica(self, drugaPoveznica):
-        
-        if (self.url.netloc == drugaPoveznica.netloc) and (self.url.path == drugaPoveznica.path) and (self.url.params == drugaPoveznica.params) and (self.url.query == drugaPoveznica.query):
-            
-            return True
-            
-        return False 
-
-
-class Stranica: 
+    Prima instancu Stranica, dakle izvorni kod stranice i indeksira njen sadrzaj, opojavnicuje tekst, pronalazi poveznice 
+    i iz njih stvara instancira Poveznia
     
-    def __init__(self, poveznica, izvor = False):
+    Args:
+        stranica (Stranica): instanca klase Stranica
+        adresa (Poveznica): instanca klase Poveznica
+        baza (Baza): instanca klase Baza
+        lokali (list of strings): lista adresa unutar kojih se stranica mora nalaziti
+        iznimke (list of strings): lista adresa koje se nece posjecivati
+    """
+    def __init__(self, stranica, adresa, baza, lokali=[], iznimke=[]):
         
-        # pohranimo url
-        self.url = poveznica
+        # pospremimo objekte
+        self.stranica = stranica
+        self.adresa = adresa
+        self.baza = baza
         
-        # izvori
-        if izvor != False:
-            self.izvor = izvor
-        
-        else:
-            self.izvor = self.dohvatiIzvor()
-        
-        #self.dohvatiPoveznice()
-        
+        # pospremimo lokale i iznimke
+        self.lokali = lokali
+        self.iznimke = iznimke
 
-    # metoda koja ucitava izvorni kod starnice
-    def dohvatiIzvor(self):
-        
-        # pokusajmo ucitati stranicu
-        try: 
-            
-            # ucitaj izvorni kod
-            return urllib2.urlopen(self.url).read()
-
-            
-        except:
-            
-            print "Pogreska"
-        
-    # 
-   # def rijeci(self):
-        
-        """rijeci = self.juha.body.find_all(text=True, recursive=True)
-        
-        for rijec in rijeci: 
-            
-            print rijec
-        
-        print "------------------------------------------------------------------------------------------"
-        
-        print self.juha.body.get_text()"""
-        
-        
-    # metoda rastavlja stranicu na pojedinacne rijeci
-    def rijeci(self):
-        
-        # dohvatimo sadrzaj svakog cvora (BeautifulSoup nam daje listu vrijednosti cvorova)
-        cvorovi = self.juha.body.find_all(self.dozvoljeniElementi, text=True, recursive=True)
-
-        for cvor in cvorovi:
-            
-            if cvor.parent.get_text() == cvor.get_text():
-                
-                print "E OVO JE POSTENO PODUDARANJE"
-            
-            print "<" + cvor.name + ">", cvor.get_text(), "</" + cvor.name + ">"
-            print ""
-        
-        
-        
-        # prodjemo kroz svaki node i izvadimo rijeci
-        for cvor in cvorovi:
-            
-            # razdvojimo recenice na rijeci
-            rijeci = re.findall(r'\w+', cvor, re.UNICODE)
-            
-            # ako ima sadrzaja
-            if len(rijeci) > 0:
-                
-                # prodjemo kroz svaku rijec
-                for rijec in rijeci:
-                    
-                    # i rijec dodamo na listu pojavnica
-                    self.pojavnice.append(rijec)
-
-
-class Cvor:
-    
-    dozvoljeniElementi = ['body', 'p', 'a', 'strong', 'b', 'em', 'i', 'li',  'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8', 'dt', 'dd', 'td', 'th', 'small', 'strike', 'cite', 'blockquote', 'addr', 'sub', 'sup', 'choco']
-    linijskiElementi = ['b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'dfn', 'em', 'kbd', 'strong', 'samp', 'var', 'a', 'bdo', 'q', 'span', 'sub', 'sup', 'label']
-    semantickiElementi = ['b', 'strong', 'em', 'i']
-    blokElementi = []
-    
-    def __init__(self, cvor, dubina=0):
-        
-        self.dubina = dubina
-        self.maks_dubina = 0
-        self.sadrzaj = cvor
-
-        # juha 
+        # pospremimo juhu
         self.juha = self.skuhajJuhu()
-
+        
+        # pohranimo stranicu
+        self.baza.dodajStranicu(self.adresa.url, self.juha.title.string)
+        
+        # indeksiramo stranicu
+        self.sadrzaj()
     
     
-    # skuhajmo juhu
+    
+    """ skuhajJuhu()
+    
+    Vraca objekt BeautifulSoup4 modula za lakse manipuliranje DOM-om
+    
+    Returns:
+        BeautifulSoup
+    """
     def skuhajJuhu(self):
         
         # iz sadrzaja
-        return BeautifulSoup(self.sadrzaj)
+        return BeautifulSoup(self.stranica.izvor)
     
     
     
-    # Vraca sve poveznice koje se nalaze u cvoru
+    """ poveznice()
+    
+    Pronalazi poveznice na trenutnoj stranici i vraca listu objekata Pooveznica
+    
+    Returns:
+        list of Poveznica
+    """
     def poveznice(self):
         
         # dohvatimo poveznice
-        sirove_poveznice = self.sadrzaj('a')
-        poveznice = [Poveznica(poveznica) for poveznica in sirove_poveznice] 
+        sirove_poveznice = self.juha('a')
         
-        # vratimo uredjeni par gdje je prva vrijednost lista poveznica, a druga broj poveznica
-        return (poveznice, len(poveznice))
-      
-    #
-    # metoda potrebna za indeksiranje, provjerava ima li trenutni cvor semanticku djecu
-    #
-    def imaSemantickuDjecu(self):
+        # vratimo listu objekata
+        return [Poveznica(poveznica, self.adresa, self.lokali, self.iznimke) for poveznica in sirove_poveznice]
         
-        if len(self.juha.find_all(self.semantickiElementi, recursive=False)) > 0:
+        
+		
+	"""
+	
+		Iskljucuje elemente koji su unutar CSS-a i sl.
+		Preuzeto: http://www.quora.com/How-I-can-extract-only-text-data-from-HTML-pages
+	"""
+    def iskljucno(self, element):		
+		
+        if element.parent.name in ['style', 'script', '[document]', 'head']:
+            return False
+		
+        elif re.match(r'a href=".*?" rel=".*?" title=".*?', str(element.encode('utf8').strip()), re.UNICODE|re.DOTALL):
+            return False
+		
+        return True
+    
+    
+    """ opojavnici()
+    
+    Opojavnicuje sadrzaj stranice na rijeci i vraca listu rijeci
+    
+    Returns:
+        list of strings 
+    """
+    def opojavnici(self):
+        
+        # spremimo iskljucivo tekst stranice, bez ocuvanja semantickih elemenata
+		sadrzaj = self.juha.findAll(text=True)
+		
+		# profiltriramo
+		sadrzaj = filter(self.iskljucno, sadrzaj)
+        
+		# razdvojimo na rijeci
+        #rijeci = re.findall(r'\w+', sadrzaj, re.UNICODE|re.DOTALL)
+        # [^\W\d_]
+		rijeci = re.findall(r'[^\W\d_]+', ",".join(sadrzaj), re.UNICODE|re.DOTALL)
+        
+        # vratimo listu rijeci
+		return rijeci
+        
+       
+       
+    """ sadrzaj()
+    
+    Zapisuje sadrzaj stranice u bazu podataka
+    
+    Returns:
+        void
+    """
+    def sadrzaj(self):
+        
+        # saznamo id stranice
+        stranicaID = self.baza.stranicaID(self.adresa.url)
+        
+        # lista rijeci
+        rijeci = self.opojavnici()
+        
+        # dohvatimo stop rijeci
+        stop_rijeci = [redak[0] if redak[5] == None else redak[5] for redak in text_hr.get_all_std_words()]
+        
+        # pohranimo svaku rijec
+        for k in range(len(rijeci)):
             
-            return True
-        
-        return False
-        
+            # preskocimo stop rijeci
+            if rijeci[k] not in stop_rijeci:
+                
+                # pohranimo u bazu
+                self.baza.dodajRijec(rijeci[k].strip().lower(), k, int(stranicaID))
+                
+                
+   
+# testiranje
+             
+if __name__ == "__main__":
     
-    def djeca(self):
-        
-        #return [dijete for dijete in cvor.children]
-        return [Cvor(dijete, self.dubina+1) for dijete in self.juha.find_all(self.dozvoljeniElementi, recursive=False)]
-
-
-
-# prima instancu stranice     
-
-class Indekser: 
+    """import urllib2
     
-    def __init__(self, stranica):
-        
-        # pohranimo izvorni kod stranice
-        self.stranica = stranica
+    adresa = "http://www.ffzg.unizg.hr"
+    sadrzaj = urllib2.urlopen(adresa).read().decode('utf8')
     
-
+    juha = BeautifulSoup(sadrzaj)
     
+   
+	rijeci = re.findall(r'[^\W\d_]+', ",".join(result), re.UNICODE|re.DOTALL)
     
-
-
-
-#izvorna_adresa = 'http://www.ffzg.unizg.hr/'
-#izvorna_poveznica = urlparse.urlparse(izvorna_adresa)
-
-strFilozofskog = Stranica('http://www.ffzg.unizg.hr/')
-obicanCvor = Cvor(strFilozofskog.izvor)
-bodyCvor = Cvor(obicanCvor.juha.body)
-print bodyCvor.juha.find_all(bodyCvor.dozvoljeniElementi, recursive=False)
-
-
-
-#indeks = Indekser(strFilozofskog)
-
-#print indeks.juha.
-
-
-
-
-
-#print indeks.djeca(indeks.djeca(indeks.djeca(indeks.tijelo())[0])[1])
-#print indeks.imaSemantickuDjecu(indeks.djeca(indeks.djeca(indeks.djeca(indeks.tijelo())[0])[1])[0])
-
-
-"""
-Klasa za indeksiranje sadrzaja
-"""
-"""class Indekser:
-    
-
-    # Inicijalizacija 
-    def __init__(self, poveznice):
-    
-        # malo vizualne magije ~~~~~
-        print "Pocetak"
-        
-        
-        # za svaku poveznicu u listi poveznica pokrenemo pretrazivanje
-        for poveznica in poveznice:
-            
-            # pretrazi poveznicu
-            self.stranica(poveznica)
-
-
-
-nesto = Indekser(['http://ffzg.unizg.hr'])"""
+    print rijeci[-40:]"""
